@@ -1,0 +1,77 @@
+<div class="cart-container">
+  <h2>Mon panier</h2>
+
+  <div *ngIf="loading" style="text-align:center;padding:60px">
+    <mat-spinner diameter="48" style="margin:auto"></mat-spinner>
+  </div>
+
+  <!-- Panier vide -->
+  <div *ngIf="!loading && cartItems.length === 0" class="empty-cart">
+    <mat-icon>shopping_cart</mat-icon>
+    <p>Votre panier est vide</p>
+    <button mat-raised-button color="primary" routerLink="/shop/catalog">
+      <mat-icon>store</mat-icon> Continuer vos achats
+    </button>
+  </div>
+
+  <!-- Tableau panier -->
+  <mat-card *ngIf="!loading && cartItems.length > 0">
+    <table mat-table [dataSource]="cartItems">
+
+      <ng-container matColumnDef="product">
+        <th mat-header-cell *matHeaderCellDef>Produit</th>
+        <td mat-cell *matCellDef="let item">
+          <div class="product-info">
+            <img [src]="item.imageUrl || 'https://via.placeholder.com/40'"
+                 width="40" height="40" style="border-radius:4px;object-fit:cover">
+            <span>{{ item.productName }}</span>
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="price">
+        <th mat-header-cell *matHeaderCellDef>Prix unitaire</th>
+        <td mat-cell *matCellDef="let item">{{ item.price | currency:'EUR' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="quantity">
+        <th mat-header-cell *matHeaderCellDef>Quantité</th>
+        <td mat-cell *matCellDef="let item"><strong>{{ item.quantity }}</strong></td>
+      </ng-container>
+
+      <ng-container matColumnDef="subtotal">
+        <th mat-header-cell *matHeaderCellDef>Sous-total</th>
+        <td mat-cell *matCellDef="let item">
+          <strong style="color:#3f51b5">{{ item.price * item.quantity | currency:'EUR' }}</strong>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let item">
+          <button mat-icon-button color="warn" (click)="remove(item.id)" matTooltip="Retirer">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+
+    <div class="cart-total">
+      <span>Total :
+        <strong style="font-size:22px;color:#3f51b5">{{ getTotal() | currency:'EUR' }}</strong>
+      </span>
+      <button mat-raised-button color="accent"
+              (click)="checkout()"
+              [disabled]="checkingOut"
+              style="margin-left:20px">
+        <mat-spinner *ngIf="checkingOut" diameter="18"
+                     style="display:inline-block;margin-right:6px"></mat-spinner>
+        <mat-icon *ngIf="!checkingOut">payment</mat-icon>
+        {{ checkingOut ? 'Commande en cours...' : 'Commander' }}
+      </button>
+    </div>
+  </mat-card>
+</div>

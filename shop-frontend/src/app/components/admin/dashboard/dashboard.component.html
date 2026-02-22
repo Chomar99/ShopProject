@@ -1,0 +1,268 @@
+<div class="dash-wrapper">
+
+  <!-- ── Loading ─────────────────────────────────────────────── -->
+  <div *ngIf="loading" class="dash-loading">
+    <div class="spinner-ring"></div>
+    <p>Chargement du tableau de bord…</p>
+  </div>
+
+  <ng-container *ngIf="!loading">
+
+    <!-- ── Header ──────────────────────────────────────────────── -->
+    <div class="dash-header">
+      <div>
+        <h1 class="dash-title">Tableau de bord</h1>
+        <p class="dash-subtitle">Vue d'ensemble de votre activité</p>
+      </div>
+      <div class="dash-date">
+        <mat-icon>calendar_today</mat-icon>
+        {{ today | date:'EEEE d MMMM yyyy' :'':'fr' }}
+      </div>
+    </div>
+
+    <!-- ── KPI Cards ────────────────────────────────────────────── -->
+    <div class="kpi-grid">
+      <div class="kpi-card" *ngFor="let k of kpis; let i = index"
+           [style.animation-delay]="(i * 0.1) + 's'">
+        <div class="kpi-icon-wrap" [style.background]="k.bg">
+          <mat-icon>{{ k.icon }}</mat-icon>
+        </div>
+        <div class="kpi-body">
+          <span class="kpi-label">{{ k.label }}</span>
+          <span class="kpi-value">{{ k.value }}</span>
+          <span class="kpi-trend" [class.up]="k.trendUp" [class.down]="!k.trendUp">
+            <mat-icon>{{ k.trendUp ? 'trending_up' : 'trending_down' }}</mat-icon>
+            {{ k.trend }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Row : Commandes + Statuts ────────────────────────────── -->
+    <div class="row-2col">
+
+      <!-- Commandes récentes -->
+      <div class="dash-panel">
+        <div class="panel-header">
+          <mat-icon>receipt_long</mat-icon>
+          <h2>Commandes récentes</h2>
+          <a routerLink="/admin/orders" class="see-all">Voir tout →</a>
+        </div>
+        <table mat-table [dataSource]="recentOrders" class="dash-table">
+
+          <ng-container matColumnDef="id">
+            <th mat-header-cell *matHeaderCellDef>#</th>
+            <td mat-cell *matCellDef="let o">
+              <span class="order-id">#{{ o.id }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="client">
+            <th mat-header-cell *matHeaderCellDef>Client</th>
+            <td mat-cell *matCellDef="let o">
+              <div class="client-cell">
+                <div class="avatar">{{ o.clientFullName.charAt(0) }}</div>
+                <span>{{ o.clientFullName }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="date">
+            <th mat-header-cell *matHeaderCellDef>Date</th>
+            <td mat-cell *matCellDef="let o">{{ o.createdAt | date:'dd/MM/yy' }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="total">
+            <th mat-header-cell *matHeaderCellDef>Total</th>
+            <td mat-cell *matCellDef="let o">
+              <strong>{{ o.total | currency:'EUR' }}</strong>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Statut</th>
+            <td mat-cell *matCellDef="let o">
+              <span class="status-badge"
+                    [style.background]="getStatusColor(o.status) + '22'"
+                    [style.color]="getStatusColor(o.status)">
+                {{ getStatusLabel(o.status) }}
+              </span>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedOrderCols"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedOrderCols;"></tr>
+        </table>
+        <div *ngIf="orders.length === 0" class="empty-state">
+          <mat-icon>receipt_long</mat-icon><p>Aucune commande</p>
+        </div>
+      </div>
+
+      <!-- Répartition statuts -->
+      <div class="dash-panel">
+        <div class="panel-header">
+          <mat-icon>donut_large</mat-icon>
+          <h2>Répartition commandes</h2>
+        </div>
+
+        <div class="donut-wrap">
+          <svg viewBox="0 0 120 120" class="donut-svg">
+            <circle cx="60" cy="60" r="45" fill="none" stroke="#f1f5f9" stroke-width="18"/>
+            <ng-container *ngFor="let s of statusData; let i = index">
+              <circle cx="60" cy="60" r="45" fill="none"
+                      [attr.stroke]="s.color"
+                      stroke-width="18"
+                      stroke-linecap="round"
+                      [attr.stroke-dasharray]="getDonutDash(s.count)"
+                      [attr.stroke-dashoffset]="getDonutOffset(i)"
+                      transform="rotate(-90 60 60)"/>
+            </ng-container>
+            <text x="60" y="55" text-anchor="middle" class="donut-total-num">{{ orders.length }}</text>
+            <text x="60" y="70" text-anchor="middle" class="donut-total-lbl">total</text>
+          </svg>
+        </div>
+
+        <div class="status-bars">
+          <div *ngFor="let s of statusData" class="status-bar-row">
+            <div class="status-bar-label">
+              <span class="dot" [style.background]="s.color"></span>
+              {{ s.label }}
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill" [style.width]="getBarWidth(s.count)"
+                   [style.background]="s.color"></div>
+            </div>
+            <span class="bar-count">{{ s.count }}</span>
+          </div>
+        </div>
+
+        <!-- Total revenue highlight -->
+        <div class="revenue-box">
+          <mat-icon>payments</mat-icon>
+          <div>
+            <small>Revenus confirmés</small>
+            <strong>{{ getConfirmedRevenue() | currency:'EUR' }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Row : Produits + Utilisateurs ────────────────────────── -->
+    <div class="row-2col">
+
+      <!-- Produits stock faible -->
+      <div class="dash-panel">
+        <div class="panel-header">
+          <mat-icon>inventory_2</mat-icon>
+          <h2>Stock des produits</h2>
+          <a routerLink="/admin/products" class="see-all">Gérer →</a>
+        </div>
+        <table mat-table [dataSource]="products" class="dash-table">
+
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Produit</th>
+            <td mat-cell *matCellDef="let p">
+              <div class="product-cell">
+                <div class="product-thumb">
+                  <img *ngIf="p.imageUrl" [src]="p.imageUrl" alt="">
+                  <mat-icon *ngIf="!p.imageUrl">image</mat-icon>
+                </div>
+                <span>{{ p.name }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="price">
+            <th mat-header-cell *matHeaderCellDef>Prix</th>
+            <td mat-cell *matCellDef="let p">{{ p.price | currency:'EUR' }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="stock">
+            <th mat-header-cell *matHeaderCellDef>Stock</th>
+            <td mat-cell *matCellDef="let p">
+              <div class="stock-pill-wrap">
+                <div class="stock-bar-bg">
+                  <div class="stock-bar-fill"
+                       [style.width]="getStockBarWidth(p.stock)"
+                       [style.background]="getStockColor(p.stock)">
+                  </div>
+                </div>
+                <span [style.color]="getStockColor(p.stock)" style="font-weight:600;min-width:28px">
+                  {{ p.stock }}
+                </span>
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>État</th>
+            <td mat-cell *matCellDef="let p">
+              <span class="stock-badge"
+                    [style.background]="getStockColor(p.stock) + '22'"
+                    [style.color]="getStockColor(p.stock)">
+                {{ getStockBadge(p.stock) }}
+              </span>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedProductCols"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedProductCols;"
+              [class.low-stock-row]="row.stock < 5"></tr>
+        </table>
+        <div *ngIf="products.length === 0" class="empty-state">
+          <mat-icon>inventory_2</mat-icon><p>Aucun produit</p>
+        </div>
+      </div>
+
+      <!-- Utilisateurs récents -->
+      <div class="dash-panel">
+        <div class="panel-header">
+          <mat-icon>group</mat-icon>
+          <h2>Utilisateurs</h2>
+        </div>
+
+        <!-- Role stats -->
+        <div class="role-stats">
+          <div class="role-stat-card" style="border-color:#6366f1">
+            <span class="role-num" style="color:#6366f1">
+              {{ users.length }}
+            </span>
+            <span class="role-lbl">Total</span>
+          </div>
+          <div class="role-stat-card" style="border-color:#10b981">
+            <span class="role-num" style="color:#10b981">
+              {{ users.length - 1 }}
+            </span>
+            <span class="role-lbl">Clients</span>
+          </div>
+          <div class="role-stat-card" style="border-color:#f59e0b">
+            <span class="role-num" style="color:#f59e0b">1</span>
+            <span class="role-lbl">Admins</span>
+          </div>
+        </div>
+
+        <!-- Users list -->
+        <div class="users-list">
+          <div *ngFor="let u of recentUsers" class="user-row">
+            <div class="user-avatar"
+                 [style.background]="u.role === 'Admin' ? '#f59e0b22' : '#6366f122'">
+              <span [style.color]="u.role === 'Admin' ? '#f59e0b' : '#6366f1'">
+                {{ u.firstName.charAt(0) }}{{ u.lastName.charAt(0) }}
+              </span>
+            </div>
+            <div class="user-info">
+              <strong>{{ u.firstName }} {{ u.lastName }}</strong>
+              <small>&#64;{{ u.username }}</small>
+            </div>
+            <span class="role-tag"
+                  [class.admin-tag]="u.role === 'Admin'"
+                  [class.client-tag]="u.role === 'Client'">
+              {{ u.role }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </ng-container>
+</div>

@@ -1,0 +1,69 @@
+<div class="page-container">
+  <h2>Mes commandes</h2>
+
+  <div *ngIf="loading" style="text-align:center;padding:60px">
+    <mat-spinner diameter="48" style="margin:auto"></mat-spinner>
+  </div>
+
+  <div *ngIf="!loading && orders.length === 0" style="text-align:center;padding:60px;color:#888">
+    <mat-icon style="font-size:64px;width:64px;height:64px">receipt_long</mat-icon>
+    <p>Aucune commande passée.</p>
+    <button mat-raised-button color="primary" routerLink="/shop/catalog">
+      <mat-icon>store</mat-icon> Faire mes premiers achats
+    </button>
+  </div>
+
+  <mat-card *ngFor="let order of orders" style="margin-bottom:16px">
+    <mat-card-header (click)="toggle(order.id)" style="cursor:pointer">
+      <mat-card-title style="display:flex;justify-content:space-between;align-items:center;width:100%">
+        <span>Commande #{{ order.id }}</span>
+        <span [style.color]="getStatusColor(order.status)" style="font-size:14px;font-weight:600">
+          {{ getStatusLabel(order.status) }}
+        </span>
+      </mat-card-title>
+      <mat-card-subtitle>
+        {{ order.createdAt | date:'dd/MM/yyyy à HH:mm' }} —
+        <strong>{{ order.total | currency:'EUR' }}</strong>
+        ({{ order.items.length }} article{{ order.items.length > 1 ? 's' : '' }})
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <!-- Détail dépliable -->
+    <mat-card-content *ngIf="expandedOrderId === order.id">
+      <table mat-table [dataSource]="order.items" style="width:100%;margin-top:12px">
+
+        <ng-container matColumnDef="product">
+          <th mat-header-cell *matHeaderCellDef>Produit</th>
+          <td mat-cell *matCellDef="let item">{{ item.productName }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="unitPrice">
+          <th mat-header-cell *matHeaderCellDef>Prix unit.</th>
+          <td mat-cell *matCellDef="let item">{{ item.unitPrice | currency:'EUR' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="quantity">
+          <th mat-header-cell *matHeaderCellDef>Qté</th>
+          <td mat-cell *matCellDef="let item">{{ item.quantity }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="subtotal">
+          <th mat-header-cell *matHeaderCellDef>Sous-total</th>
+          <td mat-cell *matCellDef="let item">
+            <strong>{{ item.subtotal | currency:'EUR' }}</strong>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="['product','unitPrice','quantity','subtotal']"></tr>
+        <tr mat-row *matRowDef="let row; columns: ['product','unitPrice','quantity','subtotal'];"></tr>
+      </table>
+    </mat-card-content>
+
+    <mat-card-actions>
+      <button mat-button (click)="toggle(order.id)">
+        <mat-icon>{{ expandedOrderId === order.id ? 'expand_less' : 'expand_more' }}</mat-icon>
+        {{ expandedOrderId === order.id ? 'Masquer' : 'Voir le détail' }}
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>

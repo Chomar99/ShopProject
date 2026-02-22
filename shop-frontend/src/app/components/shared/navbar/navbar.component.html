@@ -1,0 +1,43 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button routerLink="/admin/dashboard" *ngIf="authService.isAdmin()">
+    <mat-icon>dashboard</mat-icon>
+  </button>
+  <span style="font-weight:700;font-size:18px;margin-left:4px">🛍️ ShopApp</span>
+  <span class="spacer"></span>
+
+  <ng-container *ngIf="authService.isLoggedIn()">
+    <span style="margin-right:12px;font-size:13px;opacity:0.9">
+      Bonjour, <strong>{{ authService.getFullName() || authService.getUsername() }}</strong>
+    </span>
+
+    <!-- Menu Admin -->
+    <ng-container *ngIf="authService.isAdmin()">
+      <button mat-button routerLink="/admin/dashboard" routerLinkActive="active-link">
+        <mat-icon>dashboard</mat-icon> Dashboard
+      </button>
+      <button mat-button routerLink="/admin/products" routerLinkActive="active-link">
+        <mat-icon>inventory_2</mat-icon> Produits
+      </button>
+      <button mat-button routerLink="/admin/orders" routerLinkActive="active-link">
+        <mat-icon>receipt_long</mat-icon> Commandes
+      </button>
+    </ng-container>
+
+    <!-- Menu Client -->
+    <ng-container *ngIf="authService.isClient()">
+      <button mat-button routerLink="/shop/catalog" routerLinkActive="active-link">
+        <mat-icon>store</mat-icon> Catalogue
+      </button>
+      <button mat-button routerLink="/shop/cart" routerLinkActive="active-link">
+        <mat-icon>shopping_cart</mat-icon> Panier
+      </button>
+      <button mat-button routerLink="/shop/orders" routerLinkActive="active-link">
+        <mat-icon>receipt_long</mat-icon> Mes commandes
+      </button>
+    </ng-container>
+
+    <button mat-icon-button (click)="authService.logout()" matTooltip="Déconnexion">
+      <mat-icon>logout</mat-icon>
+    </button>
+  </ng-container>
+</mat-toolbar>

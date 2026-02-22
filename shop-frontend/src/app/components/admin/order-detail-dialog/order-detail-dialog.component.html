@@ -1,0 +1,60 @@
+<h2 mat-dialog-title>
+  <mat-icon style="vertical-align:middle">receipt_long</mat-icon>
+  Commande #{{ order.id }}
+</h2>
+
+<mat-dialog-content>
+
+  <!-- Infos client -->
+  <mat-card style="margin-bottom:16px;background:#f5f5f5">
+    <mat-card-content>
+      <p><strong>Client :</strong> {{ order.clientFullName }} (&#64;{{ order.clientUsername }})</p>
+      <p><strong>Date :</strong> {{ order.createdAt | date:'dd/MM/yyyy à HH:mm' }}</p>
+      <p>
+        <strong>Statut :</strong>
+        <span [style.color]="getStatusColor(order.status)"
+              style="font-weight:600;margin-left:8px">
+          {{ order.status }}
+        </span>
+      </p>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Articles -->
+  <table mat-table [dataSource]="order.items" style="width:100%">
+
+    <ng-container matColumnDef="product">
+      <th mat-header-cell *matHeaderCellDef>Produit</th>
+      <td mat-cell *matCellDef="let item">{{ item.productName }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="unitPrice">
+      <th mat-header-cell *matHeaderCellDef>Prix unit.</th>
+      <td mat-cell *matCellDef="let item">{{ item.unitPrice | currency:'EUR' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="quantity">
+      <th mat-header-cell *matHeaderCellDef>Qté</th>
+      <td mat-cell *matCellDef="let item">{{ item.quantity }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="subtotal">
+      <th mat-header-cell *matHeaderCellDef>Sous-total</th>
+      <td mat-cell *matCellDef="let item">
+        <strong>{{ item.subtotal | currency:'EUR' }}</strong>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+
+  <div style="text-align:right;padding:16px;font-size:18px;border-top:1px solid #eee;margin-top:8px">
+    <strong>Total : {{ order.total | currency:'EUR' }}</strong>
+  </div>
+
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-raised-button mat-dialog-close>Fermer</button>
+</mat-dialog-actions>

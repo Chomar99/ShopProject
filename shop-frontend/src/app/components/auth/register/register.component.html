@@ -1,0 +1,70 @@
+<div class="auth-wrapper">
+  <mat-card class="auth-card">
+    <mat-card-header>
+      <mat-card-title>Créer un compte</mat-card-title>
+      <mat-card-subtitle>Rejoignez ShopApp gratuitement</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <mat-form-field appearance="outline">
+            <mat-label>Prénom</mat-label>
+            <input matInput formControlName="firstName">
+            <mat-error *ngIf="form.get('firstName')?.hasError('required')">Requis</mat-error>
+            <mat-error *ngIf="form.get('firstName')?.hasError('minlength')">Min 2 car.</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Nom</mat-label>
+            <input matInput formControlName="lastName">
+            <mat-error *ngIf="form.get('lastName')?.hasError('required')">Requis</mat-error>
+            <mat-error *ngIf="form.get('lastName')?.hasError('minlength')">Min 2 car.</mat-error>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nom d'utilisateur</mat-label>
+          <input matInput formControlName="username">
+          <mat-icon matSuffix>person</mat-icon>
+          <mat-error *ngIf="form.get('username')?.hasError('required')">Requis</mat-error>
+          <mat-error *ngIf="form.get('username')?.hasError('minlength')">Min 3 caractères</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Mot de passe</mat-label>
+          <input matInput type="password" formControlName="password">
+          <mat-icon matSuffix>lock</mat-icon>
+          <mat-hint>Minimum 6 caractères</mat-hint>
+          <mat-error *ngIf="form.get('password')?.hasError('required')">Requis</mat-error>
+          <mat-error *ngIf="form.get('password')?.hasError('minlength')">Min 6 caractères</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Confirmer le mot de passe</mat-label>
+          <input matInput type="password" formControlName="confirmPassword">
+          <mat-icon matSuffix>lock_outline</mat-icon>
+          <mat-error *ngIf="form.get('confirmPassword')?.hasError('required')">Requis</mat-error>
+          <mat-error *ngIf="form.hasError('passwordMismatch') && form.get('confirmPassword')?.touched">
+            Les mots de passe ne correspondent pas
+          </mat-error>
+        </mat-form-field>
+
+        <div *ngIf="error" class="error-msg">
+          <mat-icon style="font-size:16px;vertical-align:middle">error</mat-icon>
+          {{ error }}
+        </div>
+
+        <button mat-raised-button color="primary" type="submit"
+                [disabled]="form.invalid || loading" class="full-width">
+          {{ loading ? 'Inscription...' : 'S\'inscrire' }}
+        </button>
+
+        <p class="register-link">
+          Déjà un compte ? <a routerLink="/login">Se connecter</a>
+        </p>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>
